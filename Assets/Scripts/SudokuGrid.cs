@@ -37,7 +37,7 @@ public class SudokuGrid : MonoBehaviour
         return true;
     }
 
-    static bool SolvePuzzle(int[,] grid)
+    static bool SolvePuzzle(int[,] grid, bool unique = false)
     {
         for (int row = 0; row < 9; row++)
         {
@@ -46,7 +46,7 @@ public class SudokuGrid : MonoBehaviour
                 int value = grid[row, col];
                 if (value != 0) continue; // given as a clue, or already solved
 
-                if (SolveSlot(grid, row, col) == 0)
+                if (SolveSlot(grid, row, col, unique) == 0)
                 {
                     return false; // cannot solve for this position
                 }
@@ -63,12 +63,22 @@ public class SudokuGrid : MonoBehaviour
         return true; // Solved
     }
 
-    static int SolveSlot(int[,] grid, int row, int col)
+    static int SolveSlot(int[,] grid, int row, int col, bool unique)
     {
         for (int guess = 1; guess <= 9; guess++)
         {
             if (IsPossible(grid, row, col, guess))
             {
+                if (unique)
+                {
+                    for (int alt = guess + 1; alt <= 9; alt++)
+                    {
+                        if (IsPossible(grid, row, col, alt))
+                        {
+                            return 0; // solution is not unique
+                        }
+                    }
+                }
                 grid[row, col] = guess;
                 return guess;
             }
@@ -194,9 +204,9 @@ public class SudokuGrid : MonoBehaviour
             // Remove the clue in this slot and attempt to solve the puzzle
             grid[row, col] = 0;
             Array.Copy(grid, tempGrid, grid.Length);
-            if (SolvePuzzle(tempGrid))
+            if (SolvePuzzle(tempGrid, unique: true))
             {
-                // Still solvable, so keep this slot blank and keep going
+                // Still uniquely solvable, so keep this slot blank and keep going
                 remainingClues--;
             }
             else

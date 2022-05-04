@@ -42,12 +42,7 @@ public class SudokuCell : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
 
     private void Update()
     {
-        if (sudokuGrid.IsSolved())
-        {
-            return;
-        }
-
-        if (selectedCell == this)
+        if (selectedCell == this && !sudokuGrid.IsSolved())
         {
             UpdateNumberFromInput();
         }
