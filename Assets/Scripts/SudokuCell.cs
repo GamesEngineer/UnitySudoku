@@ -7,99 +7,109 @@ public class SudokuCell : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
 {
     public GridLayoutGroup markupGrid;
     public TextMeshProUGUI numberText;
-    public static SudokuCell selectedCell;
     public SudokuGrid sudokuGrid;
+    private Image myImage;
 
+    public int Slot => transform.GetSiblingIndex();
+    public int Row => Slot / 9;
+    public int Col => Slot % 9;
+    public float Age { get; private set; }
     public int Number
     {
-        get => number;
+        get => _number;
         set {
-            number = value;
-            sudokuGrid.SetGameValue(Row, Col, number);
-            numberText.text = number.ToString();
+            if (_number == value) return;
+            _number = value;
+            Age = 0f;
+            sudokuGrid.SetGameValue(Row, Col, _number);
+            numberText.text = _number.ToString();
         }
     }
-    private int number;
+    private int _number;
+
+    public static SudokuCell SelectedCell { get; private set; }
 
     private void Awake()
     {
+        myImage = GetComponent<Image>();
         if (!sudokuGrid)
         {
             sudokuGrid = FindObjectOfType<SudokuGrid>();
         }
+        sudokuGrid.OnPuzzleCreated += SudokuGrid_OnPuzzleCreatedOrSolved;
+        sudokuGrid.OnPuzzleSolved += SudokuGrid_OnPuzzleCreatedOrSolved;
+    }
+
+    private void OnDestroy()
+    {
+        sudokuGrid.OnPuzzleCreated -= SudokuGrid_OnPuzzleCreatedOrSolved;
+        sudokuGrid.OnPuzzleSolved -= SudokuGrid_OnPuzzleCreatedOrSolved;
+    }
+
+    private void SudokuGrid_OnPuzzleCreatedOrSolved()
+    {
+        Number = sudokuGrid.GetGameValue(Row, Col);
+        ClearMarkup();
     }
 
     private void Start()
     {
-        for (int n = 0; n < 9; n++)
-        {
-            var label = GetMarkupButtonLabel(n);
-            label.SetActive(false);
-        }
-        Number = sudokuGrid.GetGameValue(Row, Col);
-        ShowMarkup(number == 0);
+        ClearMarkup();
     }
 
     private void Update()
     {
-        if (selectedCell == this && !sudokuGrid.IsSolved())
-        {
-            UpdateNumberFromInput();
-        }
-        ShowMarkup(number == 0);
+        Age = sudokuGrid.showHints ? Age + Time.deltaTime : 0f;
+        ShowMarkup(Number == 0);
+        UpdateCellColor();
+    }
 
-        if (number != 0)
+    private void UpdateCellColor()
+    {
+        myImage.color = (SelectedCell == this) ? Color.yellow : Color.grey;
+
+        if (Number == 0) return;
+
+        int puzzleValue = sudokuGrid.GetPuzzleValue(Row, Col);
+        if (puzzleValue == 0)
         {
-            int puzzleValue = sudokuGrid.GetPuzzleValue(Row, Col);
-            if (puzzleValue == 0)
+            if (!sudokuGrid.IsValid(Row, Col))
             {
-                numberText.color = sudokuGrid.IsValid(Row, Col) ? Color.blue : Color.red;
+                numberText.color = Color.red;
             }
             else
             {
-                numberText.color = sudokuGrid.IsValid(Row, Col) ? Color.black : new Color(0.7f, 0f, 0f, 1f);
+                int solutionValue = sudokuGrid.GetSolutionValue(Row, Col);
+                if (Age < sudokuGrid.ageBeforeHints || solutionValue <= 0 || solutionValue == Number)
+                {
+                    numberText.color = Color.blue;
+                }
+                else
+                {
+                    numberText.color = Color.yellow;
+                }
             }
         }
-    }
-
-    private void UpdateNumberFromInput()
-    {
-        int puzzleValue = sudokuGrid.GetPuzzleValue(Row, Col);
-        if (puzzleValue != 0) return;
-
-        for (int i = 0; i < Input.inputString.Length; i++)
+        else if (sudokuGrid.IsValid(Row, Col))
         {
-            char c = Input.inputString[i];
-            switch (c)
-            {
-                case '0': Number = 0; break;
-                case '1': Number = 1; break;
-                case '2': Number = 2; break;
-                case '3': Number = 3; break;
-                case '4': Number = 4; break;
-                case '5': Number = 5; break;
-                case '6': Number = 6; break;
-                case '7': Number = 7; break;
-                case '8': Number = 8; break;
-                case '9': Number = 9; break;
-                default: break;
-            }
+            numberText.color = Color.black;
+        }
+        else
+        {
+            numberText.color = new Color(0.7f, 0f, 0f, 1f);
         }
     }
 
-    public int Row => transform.GetSiblingIndex() / 9;
-    public int Col => transform.GetSiblingIndex() % 9;
-    
     public void OnPointerEnter(PointerEventData eventData)
     {
-        selectedCell = this;
+        SelectedCell = this;
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (selectedCell == this)
+        if (SelectedCell == this)
         {
-            selectedCell = null;
+            SelectedCell = null;
         }
     }
 
@@ -109,15 +119,25 @@ public class SudokuCell : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
         numberText.gameObject.SetActive(!yesNo);
     }
 
-    public void ToggleMarkup(int n)
+    public void ClearMarkup()
     {
-        GameObject buttonLabel = GetMarkupButtonLabel(n);
+        for (int n = 1; n <= 9; n++)
+        {
+            GameObject markup = GetMarkupButtonLabel(n);
+            markup.SetActive(false);
+        }
+    }
+
+    public void ToggleMarkupDigit(int digit)
+    {
+        GameObject buttonLabel = GetMarkupButtonLabel(digit);
         buttonLabel.SetActive(!buttonLabel.activeSelf);
     }
 
-    private GameObject GetMarkupButtonLabel(int siblingIndex)
+    private GameObject GetMarkupButtonLabel(int digit)
     {
-        var child = markupGrid.transform.GetChild(siblingIndex);
+        int index = digit - 1;
+        var child = markupGrid.transform.GetChild(index);
         var button = child.GetComponent<Button>();
         var buttonLabel = button.transform.GetChild(0).gameObject;
         return buttonLabel;

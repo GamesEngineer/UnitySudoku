@@ -2,81 +2,159 @@ using System;
 using Random = System.Random;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class SudokuGrid : MonoBehaviour
 {
     public GridLayoutGroup gridLayout;
+    public Slider modeSlider;
+    public TextMeshProUGUI congratsText;
+
+    public enum Difficulty { Easy, Medium, Hard }
+    public Difficulty difficulty = Difficulty.Easy;
+    public bool showHints = false;
+    public float ageBeforeHints = 15f;
+    public void SetShowHints(bool val) { showHints = val; }
+
     private readonly int[,] puzzleGrid = new int[9, 9];
     private readonly int[,] gameGrid = new int[9, 9];
     private readonly int[,] solutionGrid = new int[9, 9];
+    private static readonly int[] minGivens = { 37, 24, 18 };
+    private readonly Random rng = new Random((int)DateTime.Now.Ticks);
+    private bool solvedByPlayer = true;
+    public event Action OnPuzzleCreated;
+    public event Action OnPuzzleSolved;
+
+    public void SetDifficulty(int d)
+    {
+        difficulty = (Difficulty)d;
+    }
 
     private void Awake()
     {
-        MakeNewPuzzle();
+        QualitySettings.vSyncCount = 2;
+        Application.targetFrameRate = 30;
     }
 
-    private void MakeNewPuzzle()
+    private void Update()
     {
-        var rng = new Random((int)DateTime.Now.Ticks);
+        bool isSolved = IsSolved();
+        congratsText.gameObject.SetActive(isSolved && solvedByPlayer);
+        if (isSolved) return;
+        
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            modeSlider.value = 1f - modeSlider.value;
+        }
+
+        if (SudokuCell.SelectedCell)
+        {
+            int puzzleValue = GetPuzzleValue(SudokuCell.SelectedCell.Row, SudokuCell.SelectedCell.Col);
+            if (puzzleValue != 0) return; // Don't overwrite givens
+
+            for (int i = 0; i < Input.inputString.Length; i++)
+            {
+                char c = Input.inputString[i];
+                SendInputToSelectedCell(c);
+            }
+        }
+    }
+
+    private void SendInputToSelectedCell(char input)
+    {
+        int number = input - '0';
+        if (modeSlider.value == 0)
+        {
+            if (number == 0 || input == '\b')
+            {
+                SudokuCell.SelectedCell.Number = 0;
+            }
+            else if (number >= 1 && number <= 9)
+            {
+                SudokuCell.SelectedCell.Number = number;
+            }
+        }
+        else
+        {
+            if (number == 0 || input == '\b')
+            {
+                SudokuCell.SelectedCell.ClearMarkup();
+            }
+            else if (number >= 1 && number <= 9)
+            {
+                SudokuCell.SelectedCell.ToggleMarkupDigit(number);
+            }
+        }
+    }
+
+    public void MakeNewPuzzle()
+    {
+        solvedByPlayer = true;
         int[] deckOfNine = new int[9] { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        Array.Clear(solutionGrid, 0, solutionGrid.Length);
         FillWithRandomSolution(solutionGrid, rng, deckOfNine);
         Array.Copy(solutionGrid, puzzleGrid, solutionGrid.Length);
-        RemoveRandomClues(puzzleGrid, rng);
+        BlankRandomCells(puzzleGrid, rng, minGivens[(int)difficulty]);
         Array.Copy(puzzleGrid, gameGrid, puzzleGrid.Length);
+        OnPuzzleCreated?.Invoke();
     }
 
     public bool IsSolved()
     {
-        for (int row = 0; row< 9; row++)
+        for (int row = 0; row < 9; row++)
         {
-            for (int col = 0; col< 9; col++)
+            for (int col = 0; col < 9; col++)
             {
-                if (!IsValid(row,col)) return false;
+                if (!IsValid(row, col)) return false;
             }
         }
         return true;
     }
 
-    static bool SolvePuzzle(int[,] grid, bool unique = false)
+    public void SolvePuzzle()
+    {
+        solvedByPlayer = false;
+        Array.Copy(solutionGrid, gameGrid, gameGrid.Length);
+        OnPuzzleSolved?.Invoke();
+    }
+
+    static bool SolvePuzzle(int[,] grid)
     {
         for (int row = 0; row < 9; row++)
         {
             for (int col = 0; col < 9; col++)
             {
                 int value = grid[row, col];
-                if (value != 0) continue; // given as a clue, or already solved
+                if (value != 0) continue; // given or already solved
 
-                if (SolveSlot(grid, row, col, unique) == 0)
+                if (SolveSlot(grid, row, col) == 0)
                 {
                     return false; // cannot solve for this position
                 }
 
                 // Attempt to solve the rest of the puzzle
-                if (SolvePuzzle(grid)) // RECURSION!
+                if (!SolvePuzzle(grid)) // RECURSION!
                 {
-                    return true;
+                    // Backtrack
+                    grid[row, col] = 0;
+                    return false;
                 }
-
-                return false; // Backtrack
             }
         }
         return true; // Solved
     }
-
-    static int SolveSlot(int[,] grid, int row, int col, bool unique)
+    
+    static int SolveSlot(int[,] grid, int row, int col)
     {
         for (int guess = 1; guess <= 9; guess++)
         {
             if (IsPossible(grid, row, col, guess))
             {
-                if (unique)
+                for (int alt = guess + 1; alt <= 9; alt++)
                 {
-                    for (int alt = guess + 1; alt <= 9; alt++)
+                    if (IsPossible(grid, row, col, alt))
                     {
-                        if (IsPossible(grid, row, col, alt))
-                        {
-                            return 0; // solution is not unique
-                        }
+                        return 0; // solution is not unique
                     }
                 }
                 grid[row, col] = guess;
@@ -85,11 +163,11 @@ public class SudokuGrid : MonoBehaviour
         }
         return 0; // no number will fit this slot
     }
-
+    
     public int GetGameValue(int row, int col) => gameGrid[row, col];
     public void SetGameValue(int row, int col, int value) => gameGrid[row, col] = value;
     public int GetPuzzleValue(int row, int col) => puzzleGrid[row, col];
-    public int GetSolutionValue(int row, int col) => solutionGrid[row, col];
+    public int GetSolutionValue(int row, int col) => showHints ? solutionGrid[row, col] : -1;
 
     static bool IsPossible(int[,] grid, int row, int col, int value)
     {
@@ -100,6 +178,7 @@ public class SudokuGrid : MonoBehaviour
         return true;
     }
     public bool IsPossible(int row, int col, int value) => IsPossible(gameGrid, row, col, value);
+
     static bool IsValid(int[,] grid, int row, int col)
     {
         int value = grid[row, col];
@@ -146,16 +225,6 @@ public class SudokuGrid : MonoBehaviour
     }
     public bool BlockHasValue(int blockRow, int blockCol, int value) => BlockHasValue(gameGrid, blockRow, blockCol, value);
 
-    static int[,] MakeSudokuPuzzle()
-    {
-        int[,] grid = new int[9, 9];
-        int[] deckOfNine = new int[9] { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-        var rng = new Random((int)DateTime.Now.Ticks);
-        FillWithRandomSolution(grid, rng, deckOfNine);
-        RemoveRandomClues(grid, rng);
-        return grid;
-    }
-
     static bool FillWithRandomSolution(int[,] grid, Random rng, int[] deckOfNine)
     {
         for (int row = 0; row < 9; row++)
@@ -183,16 +252,15 @@ public class SudokuGrid : MonoBehaviour
         return true; // no blank slots
     }
 
-    static void RemoveRandomClues(int[,] grid, Random rng)
+    static void BlankRandomCells(int[,] grid, Random rng, int minGivens)
     {
         // Create a list of all possible slots (0..80)
         int[] slots = MakeSequence(0, 81);
         int remainingSlots = slots.Length;
-        int remainingClues = grid.Length;
-        Debug.Assert(remainingClues == remainingSlots);
+        int remainingGivens = grid.Length;
+        Debug.Assert(remainingGivens == remainingSlots);
         int[,] tempGrid = new int[9, 9]; // used for checking solutions
-        const int MIN_CLUES = 17; // smallest number of clues in a solvable Sudoku puzzle
-        while (remainingClues > MIN_CLUES && remainingSlots > 0)
+        while (remainingGivens > minGivens && remainingSlots > 0)
         {
             // Select a random slot that hasn't been tried yet
             int slot = TakeRandomItem(slots, rng, ref remainingSlots);
@@ -201,18 +269,18 @@ public class SudokuGrid : MonoBehaviour
             int value = grid[row, col];
             Debug.Assert(value >= 1 && value <= 9);
 
-            // Remove the clue in this slot and attempt to solve the puzzle
+            // Remove the number in this slot and attempt to solve the puzzle
             grid[row, col] = 0;
             Array.Copy(grid, tempGrid, grid.Length);
-            if (SolvePuzzle(tempGrid, unique: true))
+            if (SolvePuzzle(tempGrid))
             {
                 // Still uniquely solvable, so keep this slot blank and keep going
-                remainingClues--;
+                remainingGivens--;
             }
             else
             {
-                // Removing this clue would make the puzzle unsolvable
-                // So, replace the clue and try elsewhere
+                // Removing this number would make the puzzle unsolvable
+                // So, replace the number and try elsewhere
                 grid[row, col] = value;
             }
         }

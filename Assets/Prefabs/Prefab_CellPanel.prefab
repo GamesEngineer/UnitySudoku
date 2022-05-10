@@ -257,12 +257,12 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 8501836257098040223}
         m_TargetAssemblyTypeName: SudokuCell, Assembly-CSharp
-        m_MethodName: ToggleMarkup
+        m_MethodName: ToggleMarkupDigit
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 8
+          m_IntArgument: 9
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
@@ -390,12 +390,12 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 8501836257098040223}
         m_TargetAssemblyTypeName: SudokuCell, Assembly-CSharp
-        m_MethodName: ToggleMarkup
+        m_MethodName: ToggleMarkupDigit
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
+          m_IntArgument: 1
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
@@ -523,12 +523,12 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 8501836257098040223}
         m_TargetAssemblyTypeName: SudokuCell, Assembly-CSharp
-        m_MethodName: ToggleMarkup
+        m_MethodName: ToggleMarkupDigit
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 7
+          m_IntArgument: 8
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
@@ -790,12 +790,12 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 8501836257098040223}
         m_TargetAssemblyTypeName: SudokuCell, Assembly-CSharp
-        m_MethodName: ToggleMarkup
+        m_MethodName: ToggleMarkupDigit
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 1
+          m_IntArgument: 2
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
@@ -923,12 +923,12 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 8501836257098040223}
         m_TargetAssemblyTypeName: SudokuCell, Assembly-CSharp
-        m_MethodName: ToggleMarkup
+        m_MethodName: ToggleMarkupDigit
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 5
+          m_IntArgument: 6
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
@@ -1056,12 +1056,12 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 8501836257098040223}
         m_TargetAssemblyTypeName: SudokuCell, Assembly-CSharp
-        m_MethodName: ToggleMarkup
+        m_MethodName: ToggleMarkupDigit
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 6
+          m_IntArgument: 7
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
@@ -1189,12 +1189,12 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 8501836257098040223}
         m_TargetAssemblyTypeName: SudokuCell, Assembly-CSharp
-        m_MethodName: ToggleMarkup
+        m_MethodName: ToggleMarkupDigit
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 2
+          m_IntArgument: 3
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
@@ -1858,12 +1858,12 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 8501836257098040223}
         m_TargetAssemblyTypeName: SudokuCell, Assembly-CSharp
-        m_MethodName: ToggleMarkup
+        m_MethodName: ToggleMarkupDigit
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 3
+          m_IntArgument: 4
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
@@ -2337,12 +2337,12 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 8501836257098040223}
         m_TargetAssemblyTypeName: SudokuCell, Assembly-CSharp
-        m_MethodName: ToggleMarkup
+        m_MethodName: ToggleMarkupDigit
         m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 4
+          m_IntArgument: 5
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
@@ -2573,6 +2573,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   markupGrid: {fileID: 8197601528983833399}
   numberText: {fileID: 8197601529247559533}
+  sudokuGrid: {fileID: 0}
 --- !u!1 &8197601529247559535
 GameObject:
   m_ObjectHideFlags: 0
