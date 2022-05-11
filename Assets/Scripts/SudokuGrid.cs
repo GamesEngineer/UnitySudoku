@@ -284,6 +284,7 @@ public class SudokuGrid : MonoBehaviour
                 grid[row, col] = value;
             }
         }
+        print($"{remainingGivens}");
     }
 
     static void Shuffle(int[] items, Random rng)

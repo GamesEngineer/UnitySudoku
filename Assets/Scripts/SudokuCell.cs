@@ -66,7 +66,7 @@ public class SudokuCell : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
 
     private void UpdateCellColor()
     {
-        myImage.color = (SelectedCell == this) ? Color.yellow : Color.grey;
+        myImage.color = (SelectedCell == this) ? Color.yellow : new Color(0f, 0f, 0f, 0.25f);
 
         if (Number == 0) return;
 
