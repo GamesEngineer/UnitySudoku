@@ -68,6 +68,20 @@ public class SudokuCell : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
     {
         myImage.color = (SelectedCell == this) ? Color.yellow : new Color(0f, 0f, 0f, 0.25f);
 
+        for (int n = 1; n <= 9; n++)
+        {
+            GameObject labelObj = GetMarkupButtonLabel(n);
+            var label = labelObj.GetComponent<TextMeshProUGUI>();
+            if (sudokuGrid.showHints && Age >= sudokuGrid.ageBeforeHints)
+            {
+                label.color = sudokuGrid.IsPossible(Row, Col, n) ? Color.black : Color.red;
+            }
+            else
+            {
+                label.color = Color.black;
+            }
+        }
+
         if (Number == 0) return;
 
         int puzzleValue = sudokuGrid.GetPuzzleValue(Row, Col);
@@ -132,6 +146,7 @@ public class SudokuCell : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
     {
         GameObject buttonLabel = GetMarkupButtonLabel(digit);
         buttonLabel.SetActive(!buttonLabel.activeSelf);
+        Age = 0f;
     }
 
     private GameObject GetMarkupButtonLabel(int digit)
